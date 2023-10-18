@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:security="http://www.springframework.org/schema/security"
+	xsi:schemaLocation="http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-5.8.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+	
+	<bean id="bCryptPasswordEncoder"  class="org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder"/>
+	<bean id="customUserDetailsService" class="com.minu.sec.security.CustomUserDetailsService"></bean>
+	<bean id="customAccessDeniedHandler" class="com.minu.sec.security.CustomAccessDeniedHandler"/>
+	<bean id="customLoginSuccessHandler" class="com.minu.sec.security.CustomLoginSuccessHandler"/>
+	
+ 	<security:http>
+ 		<!-- <security:access-denied-handler/>가 없으면 추측해야 해서 힘듬 (필수) -->
+ 		<security:access-denied-handler ref="customAccessDeniedHandler"/>
+		<security:intercept-url pattern="/oho/all" access="permitAll" />
+		<security:intercept-url pattern="/oho/sukil" access="hasRole('ROLE_SUKIL')" />
+		<security:form-login authentication-success-handler-ref="customLoginSuccessHandler" login-page="/slogin"  login-processing-url="/slogin"/>
+		<!-- authentication-success-handler-ref="" => 인증에 성공했을때 가게 할 url을 정하고,
+			만약 사용자가 입력한 url로 그대로 가게 둔다면 꼭 필요하지 않음,
+			로그인 성공 후 특정 url로 보내고 싶을 때는 success-handler필요 -->
+		<!-- username-parameter="sukilname"을 사용하면 default값인 username을 사용하지 않고 sukilname을 사용할 수 있음 -->
+		<!-- login-page= => get방식으로 화면보여주기 위해 / login-processing-url= => post방식  -->
+		<security:logout logout-url="/mylogout" />
+	</security:http>
+
+	<security:authentication-manager id="authMgr"> <!-- id는 controller에서 @authowired한 변수명과 같아야함 -->
+		<security:authentication-provider user-service-ref="customUserDetailsService" >
+			<security:password-encoder ref="bCryptPasswordEncoder" />
+		</security:authentication-provider>
+	</security:authentication-manager>
+
+</beans>
